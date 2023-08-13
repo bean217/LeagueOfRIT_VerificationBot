@@ -1,2 +1,3 @@
 accesstoken
 /venv
+.env
