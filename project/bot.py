@@ -1,10 +1,10 @@
 import discord
+import traceback
 
 import bot_utils
-from bot_utils import send_message, start_verification
 from bot_utils import get_unverified_members
 
-from verification_state import User
+from verification_state import User, Verification_State
 
 
 
@@ -15,7 +15,7 @@ def run_discord_bot(token, guild_id):
     intents.members = True
     client = discord.Client(intents=intents)
 
-
+    # keep track of all users who are not yet verified
     unverified_users = dict()
 
 
@@ -33,6 +33,7 @@ def run_discord_bot(token, guild_id):
         print(f'{client.user} is now running!')
 
 
+
     @client.event
     async def on_member_join(member):
         print(member, "joined")
@@ -40,7 +41,7 @@ def run_discord_bot(token, guild_id):
         # send new member a verification message
         if len(member.roles) < 2:
             unverified_users.update({member.id: User(member)})
-            await start_verification(member)
+            await bot_utils.handle_new(unverified_users.get(member.id))
 
 
 
@@ -48,16 +49,15 @@ def run_discord_bot(token, guild_id):
     async def on_member_remove(member):
         print(member, "left")
         
-        for i, user in enumerate(unverified_users):
-            if user.id == member.id and member.id in unverified_users.keys():
-                unverified_users.pop(member.id)
+        if member.id in unverified_users.keys():
+            unverified_users.pop(member.id)
 
 
 
     @client.event
     async def on_message(message):
         # only consider non-bot messages
-        if message.author == client.user:
+        if message.author == client.user or str(message.channel.type) != "private":
             return
 
         username = str(message.author)
@@ -67,12 +67,32 @@ def run_discord_bot(token, guild_id):
         print(f"{username} said: '{user_message}' ({channel})")
         # print("Members:",[m for m in message.guild.members if not m.bot])
 
-        if user_message != '':
-            if user_message[0] == '?':
-                user_message = user_message[1:]
-                await send_message(message, user_message, is_private=True)
-            elif user_message[0] == '!':
-                await send_message(message, user_message, is_private=False)
+
+        # attempt to fetch User object
+        if message.author.id not in unverified_users.keys():
+            print("user has already been verified")
+            return
+            
+        user_state = unverified_users.get(message.author.id)
+        #TODO: (THIS COULD BE REMOVED) remove user from verification if this has not already been done
+        if user_state == Verification_State.DONE:
+            unverified_users.pop(user_state.user.id)
+            return
+        
+        # process message
+        try:
+            await bot_utils.handle_unverified_dm(user=user_state, message=message, unverified_users=unverified_users)
+        except Exception as e:
+            print(e)
+            print(traceback.format_exc())
+
+
+        # if user_message != '':
+        #     if user_message[0] == '?':
+        #         user_message = user_message[1:]
+        #         await send_message(message, user_message, is_private=True)
+        #     elif user_message[0] == '!':
+        #         await send_message(message, user_message, is_private=False)
 
 
     client.run(token)

@@ -1,12 +1,13 @@
-from dotenv import dotenv_values
+import os
+from dotenv import load_dotenv
 
 import bot
 
 def main():
-    secrets = dotenv_values(".env")
-    TOKEN = secrets['BOT_TOKEN']
-    URL = secrets['BOT_URL']
-    GUILD_ID = int(secrets['GUILD_ID'])
+    load_dotenv()
+    TOKEN = os.getenv('BOT_TOKEN')
+    URL = os.getenv('BOT_URL')
+    GUILD_ID = int(os.getenv('GUILD_ID'))
 
     # run the bot
     bot.run_discord_bot(TOKEN, GUILD_ID)
