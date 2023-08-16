@@ -47,6 +47,10 @@ def send_email(recipient, token):
         server.sendmail(EMAIL_USER, recipient, vs.VERIF_EMAIL_CONTENT(recipient, token))
 
 
+def add_new_unverified(member: discord.Member, unverified_users: dict):
+    unverified_users.update({member.id: User(member)})
+
+
 async def send_verif_email(user: User, email: str):
     # attempt to send email
     try:

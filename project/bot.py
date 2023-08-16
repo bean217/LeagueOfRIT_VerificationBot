@@ -4,9 +4,6 @@ import traceback
 import bot_utils
 from bot_utils import get_unverified_members
 
-from verification_state import User, Verification_State
-
-
 
 def run_discord_bot(token, guild_id):
     # setup client
@@ -40,7 +37,7 @@ def run_discord_bot(token, guild_id):
 
         # send new member a verification message
         if len(member.roles) < 2:
-            unverified_users.update({member.id: User(member)})
+            bot_utils.add_new_unverified(member, unverified_users)
             await bot_utils.handle_new(unverified_users.get(member.id))
 
 
@@ -74,10 +71,6 @@ def run_discord_bot(token, guild_id):
             return
             
         user_state = unverified_users.get(message.author.id)
-        #TODO: (THIS COULD BE REMOVED) remove user from verification if this has not already been done
-        if user_state == Verification_State.DONE:
-            unverified_users.pop(user_state.user.id)
-            return
         
         # process message
         try:
