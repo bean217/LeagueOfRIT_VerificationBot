@@ -16,24 +16,28 @@ Please note that `bot.py` is solely dependent on `bot_utils.py` and `bot_utils.p
 ## Setup Instructions
 
 ### Running Locally:
-1. Create a python virtual environment with `python -m venv path/to/venv` and install dependencies with `python -m pip install -r requirements.txt`
+1. Obtain a Google Services Credentials JSON file and place it in the `/projects` directory. More information on doing this can be found here: https://medium.com/@jb.ranchana/write-and-append-dataframes-to-google-sheets-in-python-f62479460cf0
 
-2. Inside of the `project/` directory, create a `.env` file with the following structure:
+2. Create a python virtual environment with `python -m venv path/to/venv` and install dependencies with `python -m pip install -r requirements.txt`
+
+3. Inside of the `project/` directory, create a `.env` file with the following structure:
 ```
+# Discord Bot Information
 BOT_TOKEN="BOT TOKEN CODE"
 BOT_URL="BOT URL"
 GUILD_ID="SERVER ID CODE"
+# Verification Email Credentials
 EMAIL_USER="EMAIL TO SEND VERIFCATION CODES"
 EMAIL_PASS="EMAIL PASSWORD TO SEND VERIFICATION CODES"
 SMTP_ADDR="DOMAIN OF SMTP SERVER"   // This is "smtp.google.com" by default
+# Google Services Credentials
+SHEET_KEY="KEY TO GOOGLE SHEET"
+SHEET_NAME="NAME OF SHEET TAB"
+GS_CREDS_FNAME="NAME OF GOOGLE SERVICES CREDENTIALS FILE IN /projects DIRECTORY"
 ```
 
-3. Add the bot to your server with a link from the maintainer and run `project/main.py` to start the bot
+4. Add the bot to your server with a link from the maintainer and run `project/main.py` to start the bot
 
-
-### Running In a Container
-
-... Still need to figure this out ...
 
 ## Usage Instructions
 
@@ -43,7 +47,8 @@ Once a user has been verified, they will be given the `@Tiger` role on the Leagu
 
 If a user is not an RIT student, they will need to contact a League of RIT Discord server admin/moderator to gain access to the server with the `@NON-RIT` role.
 
-**Note that the bot only considers new members. Any users that join the server while the bot is not running will have to perform verification manually.**
+**Note that the bot considers all users with only the @everyone role as an unverified user.**
+**Also note that whenever the bot is started up, all users who are unverified will receive a direct message asking for verification.**
 
 ## Credits
 

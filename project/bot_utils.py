@@ -68,10 +68,68 @@ async def send_verif_email(user: User, email: str):
 
 
 
+############################
+#     Record User Data     #
+############################
 
-##########################################
-#     Direc Message-Handling Methods     #
-##########################################
+
+from datetime import datetime
+import pandas as pd
+import gspread
+from gspread_dataframe import set_with_dataframe
+from google.oauth2.service_account import Credentials
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+
+GS_CREDS_FNAME = os.getenv('GS_CREDS_FNAME')
+SHEET_KEY = os.getenv('SHEET_KEY')
+SHEET_NAME = os.getenv('SHEET_NAME')
+
+scopes = ['https://www.googleapis.com/auth/spreadsheets',
+          'https://www.googleapis.com/auth/drive']
+
+credentials = Credentials.from_service_account_file(GS_CREDS_FNAME, scopes=scopes)
+
+gc = gspread.authorize(credentials)
+
+gauth = GoogleAuth()
+drive = GoogleDrive(gauth)
+
+
+def handle_record_data(user: User):
+    print(user.responses.keys())
+    name = user.responses.get(Verification_State.NAME_Q)
+    email = user.responses.get(Verification_State.EMAIL_Q)
+    year = user.responses.get(Verification_State.YEAR_Q)
+    discovery = user.responses.get(Verification_State.DISCOVERY_Q)
+    poster = None if Verification_State.POSTER_Q not in user.responses.keys() else user.responses.get(Verification_State.POSTER_Q)
+    if poster is not None:
+        discovery += ": " + poster
+
+    print(f"{user.id} ({user.name}) = [name: {name}, email: {email}, year: {year}, discovery: {discovery}]")
+
+    # open google sheet
+    gs = gc.open_by_key(SHEET_KEY)
+    # select work sheet
+    ws = gs.worksheet(SHEET_NAME)
+    print(ws)
+    df = pd.DataFrame({
+        'a': str(datetime.now().strftime("%m/%d/%Y, %H:%M:%S")),
+        'b': [email],
+        'c': [name],
+        'd': [year],
+        'e': [f'{user.name} ({user.id})'],
+        'f': [discovery],
+        'g': ['GREEN']
+    })
+    df_values = df.values.tolist()
+    gs.values_append(SHEET_NAME, {'valueInputOption': 'USER_ENTERED'}, {'values': df_values})
+
+
+
+###########################################
+#     Direct Message-Handling Methods     #
+###########################################
 
 
 async def handle_new(user: User):
@@ -150,11 +208,13 @@ async def handle_discovery_q(user: User, message: str):
         @param message: string of the message sent by the user
     """
     if bool(re.match(r"[1-5]$", message)):
+        # record user's multiple choice response
+        user.responses.update({user.state: vs.discovery_q_answers[int(message)-1]})
+        # if they chose poster, handle setting the user's next state accordingly
         if int(message) == 5:
             # user answered with "Poster"
             user.set_state(Verification_State.POSTER_Q)
         else:
-            user.responses.update({user.state: vs.discovery_q_answers[int(message)-1]})
             user.set_state(Verification_State.EMAIL_Q)
     else:
         # user answered with "other"
@@ -169,7 +229,6 @@ async def handle_poster_q(user: User, message: str):
         @param user: User object associated with user's verification state
         @param message: string of the message sent by the user
     """
-    message
     user.responses.update({user.state: message})
     user.set_state(Verification_State.EMAIL_Q)
     await user.send(user.msg)
@@ -214,7 +273,11 @@ async def handle_verif_sent(user: User, message: str, unverified_users: list):
             await user.send(user.msg)
             #TODO: Add finishing steps to validation (add data to the google sheet, give user the @Tiger role in the server, and remove them from the unverified_members list)
             # remove user from unverified list:
-            unverified_users.pop(user.user.id)
+            verified_user = unverified_users.pop(user.id)
+            # grant the user the tigers role
+            await verified_user.grant_tigers_role()
+            # handle recording user's data
+            handle_record_data(verified_user)
     else:
         # verification failed
         await user.send(Verification_State.INCORRECT_CODE.msg)
@@ -299,8 +362,51 @@ async def handle_unverified_dm(user: User, unverified_users: list, message: Unio
         await handle_code_timeout(user)
 
 
+
+
+
+
+
+
+
+import pandas as pd
+import gspread
+from gspread_dataframe import set_with_dataframe
+from google.oauth2.service_account import Credentials
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+
+scopes = ['https://www.googleapis.com/auth/spreadsheets',
+          'https://www.googleapis.com/auth/drive']
+
+credentials = Credentials.from_service_account_file('lora-discord-bot-60391a83090d.json', scopes=scopes)
+
+gc = gspread.authorize(credentials)
+
+gauth = GoogleAuth()
+drive = GoogleDrive(gauth)
+
+
+from datetime import datetime
+
 def main():
-    pass
+    # open google sheet
+    gs = gc.open_by_key('1ua4sVy9hHj3MPXAqh5TJbx3xIaZocojBpv27W0gZVn4')
+    # select work sheet
+    ws = gs.worksheet('Sheet1')
+    #email.utils.formatdate()
+    print(ws)
+    df = pd.DataFrame({
+        'a': str(datetime.now().strftime("%m/%d/%Y, %H:%M:%S")),
+        'b': ['email'],
+        'c': ['name'],
+        'd': ['year'],
+        'e': ['discord_id'],
+        'f': ['discovery'],
+        'g': ['GREEN']
+    })
+    df_values = df.values.tolist()
+    gs.values_append('Sheet1', {'valueInputOption': 'USER_ENTERED'}, {'values': df_values})
 
 if __name__ == "__main__":
     main()

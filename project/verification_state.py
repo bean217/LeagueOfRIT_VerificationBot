@@ -5,6 +5,7 @@ import discord
 from enum import Enum
 
 TIMEOUT_MINS: int = 15
+TIGER_ROLE_NAME = "Tigers"
 
 rit_verified_domains = [
     "rit.edu",
@@ -148,6 +149,14 @@ class User():
     @property
     def msg(self):
         return self.state.msg
+    
+    @property
+    def id(self):
+        return self.user.id
+    
+    @property
+    def name(self):
+        return self.user.name
 
     def set_state(self, value: Verification_State):
         self.__state_index = value.value
@@ -156,6 +165,10 @@ class User():
         self.__state_index = Verification_State.NEW.value
         self.responses = dict()
         self.verif_token = None
+    
+    async def grant_tigers_role(self):
+        role = [r for r in self.user.guild.roles if str(r.name) == TIGER_ROLE_NAME][0]
+        await self.user.add_roles(role)
 
     async def send(self, msg):
         await self.user.send(msg)

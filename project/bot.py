@@ -22,11 +22,18 @@ def run_discord_bot(token, guild_id):
             TODO: This event is not really used at the moment, but
             it could be used to fetch all users who are not currently verified
         """
+        # get the server being considered
         guild = bot_utils.get_guild(client, guild_id)
-        
-        # print("Members:",[m for m in message.guild.members if not m.bot])
 
-        print("Roles:", guild.roles)
+        # get all members who are not yet verified
+        unverified = [m for m in guild.members if len(m.roles) < 2]
+
+        # for each unverified member, start their verification process
+        for member in unverified:
+            try:
+                await bot_utils.start_verification(member, unverified_users)
+            except Exception as e:
+                print(e, f'({member})')
 
         print(f'{client.user} is now running!')
 
@@ -40,7 +47,7 @@ def run_discord_bot(token, guild_id):
         print(member, "joined")
 
         # send new member a verification message
-        if len(member.roles) < 2:
+        if len(member.roles) < 2 and member.id not in unverified_users.keys():
             await bot_utils.start_verification(member, unverified_users)
 
 
