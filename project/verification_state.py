@@ -4,6 +4,8 @@ import email.utils
 import discord
 from enum import Enum
 
+TIMEOUT_MINS: int = 15
+
 rit_verified_domains = [
     "rit.edu",
     "g.rit.edu",

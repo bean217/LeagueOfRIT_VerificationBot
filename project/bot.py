@@ -18,14 +18,15 @@ def run_discord_bot(token, guild_id):
 
     @client.event
     async def on_ready():
+        """Fetches the server/guild object
+            TODO: This event is not really used at the moment, but
+            it could be used to fetch all users who are not currently verified
+        """
         guild = bot_utils.get_guild(client, guild_id)
+        
+        # print("Members:",[m for m in message.guild.members if not m.bot])
 
         print("Roles:", guild.roles)
-
-        for m in get_unverified_members(guild):
-            print(m)
-            for r in m.roles:
-                print(f'\t{r}')
 
         print(f'{client.user} is now running!')
 
@@ -33,19 +34,25 @@ def run_discord_bot(token, guild_id):
 
     @client.event
     async def on_member_join(member):
+        """When a member joins, start the verification process for them
+            @param member: discord.Member object of user that joined the server
+        """
         print(member, "joined")
 
         # send new member a verification message
         if len(member.roles) < 2:
-            bot_utils.add_new_unverified(member, unverified_users)
-            await bot_utils.handle_new(unverified_users.get(member.id))
+            await bot_utils.start_verification(member, unverified_users)
 
 
 
     @client.event
     async def on_member_remove(member):
+        """When an unverified user leaves the server, stop tracking their verification state
+            @param member: discord.Member object of user that left the server
+        """
         print(member, "left")
         
+        # stop tracking user's verification state
         if member.id in unverified_users.keys():
             unverified_users.pop(member.id)
 
@@ -53,23 +60,24 @@ def run_discord_bot(token, guild_id):
 
     @client.event
     async def on_message(message):
+        """Only responds to private messages for the user verification process
+            @param message: discord.Message object of the message that was sent
+        """
+        
         # only consider non-bot messages
         if message.author == client.user or str(message.channel.type) != "private":
             return
 
-        username = str(message.author)
-        user_message = str(message.content)
-        channel = str(message.channel)
+        # TODO: could be removed later
+        # Console message to record information about a received private message
+        print(f"{str(message.author)} said: '{str(message.content)}' ({str(message.channel)})")
 
-        print(f"{username} said: '{user_message}' ({channel})")
-        # print("Members:",[m for m in message.guild.members if not m.bot])
-
-
-        # attempt to fetch User object
+        # Don't respond to messages of users that have already been verified
         if message.author.id not in unverified_users.keys():
             print("user has already been verified")
             return
             
+        # get the User object associated with an unverified user
         user_state = unverified_users.get(message.author.id)
         
         # process message
@@ -78,14 +86,6 @@ def run_discord_bot(token, guild_id):
         except Exception as e:
             print(e)
             print(traceback.format_exc())
-
-
-        # if user_message != '':
-        #     if user_message[0] == '?':
-        #         user_message = user_message[1:]
-        #         await send_message(message, user_message, is_private=True)
-        #     elif user_message[0] == '!':
-        #         await send_message(message, user_message, is_private=False)
-
-
+    
+    # run the bot
     client.run(token)

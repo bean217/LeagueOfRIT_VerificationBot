@@ -10,19 +10,9 @@ from verification_state import User, Verification_State, Token
 
 
 
-# Email Setup with secure SSL context
-import smtplib, ssl
-PORT: int = 465
-CONTEXT: ssl.SSLContext = ssl.create_default_context()
-SMTP_ADDR: str = 'smtp.gmail.com'
-
-from dotenv import load_dotenv
-load_dotenv()
-EMAIL_USER: str = os.getenv('EMAIL_USER')
-EMAIL_PASS: str = os.getenv('EMAIL_PASS')
-
-
-
+#########################################
+#     Arbitrary Bot Utility Methods     #
+#########################################
 
 
 def get_unverified_members(guild):
@@ -39,16 +29,26 @@ def get_guild(client, guild_id):
 
 
 
+############################################
+#     EMAIL/SMTP/SSL Setup and Methods     #
+############################################
+
+
+import smtplib, ssl
+PORT: int = 465
+CONTEXT: ssl.SSLContext = ssl.create_default_context()
+
+from dotenv import load_dotenv
+load_dotenv()
+EMAIL_USER: str = os.getenv('EMAIL_USER')
+EMAIL_PASS: str = os.getenv('EMAIL_PASS')
+SMTP_ADDR: str = os.getenv('SMTP_ADDR') or 'smtp.gmail.com'
 
 
 def send_email(recipient, token):
     with smtplib.SMTP_SSL(host=SMTP_ADDR, port=PORT, context=CONTEXT) as server:
         server.login(user=EMAIL_USER, password=EMAIL_PASS)
         server.sendmail(EMAIL_USER, recipient, vs.VERIF_EMAIL_CONTENT(recipient, token))
-
-
-def add_new_unverified(member: discord.Member, unverified_users: dict):
-    unverified_users.update({member.id: User(member)})
 
 
 async def send_verif_email(user: User, email: str):
@@ -68,9 +68,16 @@ async def send_verif_email(user: User, email: str):
 
 
 
-##### Handling Unverified Direct Messages
+
+##########################################
+#     Direc Message-Handling Methods     #
+##########################################
+
 
 async def handle_new(user: User):
+    """Handles messages from user in the "NEW" state
+        @param user: User object associated with user's verification state
+    """
     # send user the new user message
     await user.send(user.msg)
     user.set_state(Verification_State.STUDENT_Q)
@@ -78,7 +85,19 @@ async def handle_new(user: User):
     await user.send(user.msg)
 
 
+async def start_verification(member: discord.Member, unverified_users: dict):
+    """Starts the verification process for a particular unverified user
+        @param user: User object associated with user's verification state
+    """
+    unverified_users.update({member.id: User(member)})
+    await handle_new(unverified_users.get(member.id))
+
+
 async def handle_student_q(user: User, message: str):
+    """Handles messages from user in the "STUDENT_Q" state
+        @param user: User object associated with user's verification state
+        @param message: string of the message sent by the user
+    """
     msg = message.lower()
     # check if user said valid response
     if re.match(r"^(y(es)?)|(no?)$", msg):
@@ -97,6 +116,10 @@ async def handle_student_q(user: User, message: str):
 
 
 async def handle_name_q(user: User, message: str):
+    """Handles messages from user in the "NAME_Q"
+        @param user: User object associated with user's verification state
+        @param message: string of the message sent by the user
+    """
     # record name response
     user.responses.update({user.state: message})
     # set user to year question state
@@ -106,6 +129,10 @@ async def handle_name_q(user: User, message: str):
 
 
 async def handle_year_q(user: User, message: str):
+    """Handles messages from user in the "YEAR_Q"
+        @param user: User object associated with user's verification state
+        @param message: string of the message sent by the user
+    """
     if bool(re.match(r"[1-5]$", message)):
         user.responses.update({user.state: vs.year_q_answers[int(message)-1]})
     else:
@@ -118,6 +145,10 @@ async def handle_year_q(user: User, message: str):
 
 
 async def handle_discovery_q(user: User, message: str):
+    """Handles messages from user in the "DISCOVERY_Q"
+        @param user: User object associated with user's verification state
+        @param message: string of the message sent by the user
+    """
     if bool(re.match(r"[1-5]$", message)):
         if int(message) == 5:
             # user answered with "Poster"
@@ -134,6 +165,10 @@ async def handle_discovery_q(user: User, message: str):
 
 
 async def handle_poster_q(user: User, message: str):
+    """Handles messages from user in the "POSTER_Q"
+        @param user: User object associated with user's verification state
+        @param message: string of the message sent by the user
+    """
     message
     user.responses.update({user.state: message})
     user.set_state(Verification_State.EMAIL_Q)
@@ -141,6 +176,10 @@ async def handle_poster_q(user: User, message: str):
 
 
 async def handle_email_q(user: User, message: str):
+    """Handles messages from user in the "EMAIL_Q"
+        @param user: User object associated with user's verification state
+        @param message: string of the message sent by the user
+    """
     msg = message.split()
     # check to make sure message is just one continuous string
     if len(msg) != 1:
@@ -157,9 +196,13 @@ async def handle_email_q(user: User, message: str):
 
 
 async def handle_verif_sent(user: User, message: str, unverified_users: list):
+    """Handles messages from user in the "VERIF_SENT"
+        @param user: User object associated with user's verification state
+        @param message: string of the message sent by the user
+    """
     if message == user.verif_token.code:
         # make sure code isn't timed out
-        remaining_time = int(15 - (email.utils.parsedate_to_datetime(email.utils.formatdate()) - email.utils.parsedate_to_datetime(user.verif_token.datetime)).total_seconds() / 60)
+        remaining_time = int(vs.TIMEOUT_MINS - (email.utils.parsedate_to_datetime(email.utils.formatdate()) - email.utils.parsedate_to_datetime(user.verif_token.datetime)).total_seconds() / 60)
         if remaining_time < 0:
             # the code for this user has timed out. Another must be sent.
             user.verif_token = None
@@ -178,10 +221,18 @@ async def handle_verif_sent(user: User, message: str, unverified_users: list):
 
 
 async def handle_code_timeout(user: User):
+    """Handles messages from user in the "CODE_TIMEOUT"
+        @param user: User object associated with user's verification state
+        @param message: string of the message sent by the user
+    """
     await user.send(user.msg)
 
 
 async def handle_command(user: User, command: str):
+    """Handles user commands
+        @param user: User object associated with user's verification state
+        @param command: string of the command message sent by the user
+    """
     command = command.split()
 
     if len(command) == 1:
@@ -189,7 +240,7 @@ async def handle_command(user: User, command: str):
         if command[0] == "!resend" and (user.state == Verification_State.VERIF_SENT or user.state == Verification_State.CODE_TIMEOUT):
             # if the user has a token, check if they still have more time
             if user.verif_token is not None:
-                remaining_time = int(15 - (email.utils.parsedate_to_datetime(email.utils.formatdate()) - email.utils.parsedate_to_datetime(user.verif_token.datetime)).total_seconds() / 60)
+                remaining_time = int(vs.TIMEOUT_MINS - (email.utils.parsedate_to_datetime(email.utils.formatdate()) - email.utils.parsedate_to_datetime(user.verif_token.datetime)).total_seconds() / 60)
                 if remaining_time > 0:
                     # if so, tell user they have to wait before sending another (state does not change)
                     await user.send(f"You must wait another {'minute' if remaining_time == 1 else f'{remaining_time} minutes'} before another can be sent.")
@@ -204,25 +255,32 @@ async def handle_command(user: User, command: str):
             await handle_new(user)
 
 
-
 async def handle_unverified_dm(user: User, unverified_users: list, message: Union[None, discord.Message] = None):
+    """Handles routing message/verification state for direct message handling 
+        @param user: User object associated with user's verification state
+        @param message: discord.Message of the message sent by the user, or None
+    """
+    # if message is None, then only handle messages for users in a "NEW" state
     if message is None:
         if user.state == Verification_State.NEW:
             await handle_new(user)
         return
 
+    # convert the message content to a string
     msg = str(message.content)
     
-    if len(msg) < 0 and user.state != Verification_State.NEW:
+    # if the message is empty, tell the user they can restart if they get stuck
+    if len(msg) < 0:
         user.send("Please use the `!restart` command if you get stuck!")
         return
 
+    # handle user commands
     if msg[0] == '!':
         # user issued a command
         await handle_command(user, msg)
         return
-
-
+    
+    # call handlers based on user verification state
     if user.state == Verification_State.STUDENT_Q:
         await handle_student_q(user, msg)
     elif user.state == Verification_State.NAME_Q:
@@ -239,7 +297,6 @@ async def handle_unverified_dm(user: User, unverified_users: list, message: Unio
         await handle_verif_sent(user, msg, unverified_users)
     elif user.state == Verification_State.CODE_TIMEOUT:
         await handle_code_timeout(user)
-
 
 
 def main():
