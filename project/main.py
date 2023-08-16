@@ -13,6 +13,8 @@ def main():
     # Guild ID of the server being moderated on
     GUILD_ID = int(os.getenv('GUILD_ID'))
 
+    print("RUNNING DISCORD BOT")
+
     # run the bot
     bot.run_discord_bot(TOKEN, GUILD_ID)
 
