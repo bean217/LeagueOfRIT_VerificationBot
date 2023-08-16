@@ -17,6 +17,7 @@ def main():
 
     # run the bot
     bot.run_discord_bot(TOKEN, GUILD_ID)
+    print("BOT HAS GONE OFFLINE")
 
 if __name__ == "__main__":
     main()
