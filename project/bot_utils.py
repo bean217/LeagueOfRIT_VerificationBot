@@ -97,10 +97,23 @@ if IS_LOCAL:
 # otherwise, if running in a deployment:
 else:
     # treat GS_KEY as a json dict
-    with open('./gs_key.json', 'w') as f:
-        f.write(GS_KEY)
-    credentials = Credentials.from_service_account_file("./gs_key.json", scopes=scopes)
-    # credentials = Credentials.from_service_account_info(json.loads(GS_KEY), scopes=scopes)
+    key = GS_KEY.strip()
+    key = re.sub(r"\\n", "", key)
+    key = re.sub(r"\\\"", "\"", key)
+    key = re.sub(r"\\", r"\\\\", key)
+
+    # with open('./gs_key.json', 'w') as f:
+    #     key = GS_KEY.strip()
+    #     key = re.sub(r"\\n", "", key)
+    #     key = re.sub(r"\\\"", "\"", key)
+    #     key = re.sub(r"\\", r"\\\\", key)
+    #     print(key)
+    #     #print(re.sub('\n  ', '', key))
+    #     #key = re.sub("\\n", "", key)
+    #     #key = re.sub("\\\"", "", key)
+    #     f.write(key)
+    #credentials = Credentials.from_service_account_file("./gs_key.json", scopes=scopes)
+    credentials = Credentials.from_service_account_info(json.loads(key), scopes=scopes)
 
 gc = gspread.authorize(credentials)
 
@@ -375,6 +388,8 @@ async def handle_unverified_dm(user: User, unverified_users: list, message: Unio
 
 
 def main():
+    #with open('./testfile.json') as f:
+    #    f.write("{\n  \"type\": \"service_account\",\n  \"project_id\": \"lora-discord-bot\",\n  \"private_key_id\": \"60391a83090dbda56bf4ab8044376eeb197281b6\",\n  \"private_key\": \"-----BEGIN PRIVATE KEY-----\\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCr2eT+jSq1I1Fz\\naLO+ocr4/94LsuHd/8bC9zmreBvsAKrf1EpoMnG8lci0jXUi0oShz2idY67djW/d\\nEJllsfqbnICn+ObYzSPJ4Pp7hTwp4aXVzJ5zJFaYat0LvkR3wqB99pjT9gh9rlbT\\nWyTGP/CHwoxnyBJKAmmC0Ks+Lwfd0TDa+/xhlp03Z+Qj3EUdriG+hfhUi1ljmLVW\\nPzxfYulPatUB/+cpVv+vDSG4ki/U7sgtU3mPmczrGY5Wv+TO+Z6iZnD/Wpiw8bUs\\ngOktVeqIg0GvVUyvDYDz1qiEiBKmI9Q8uXax3ubHIM7CG7kB0R9Vj7vPRbwy/Lxz\\nJh+tnyFVAgMBAAECggEAB795cFOXhRasTa5/Ch17y/mnPnJIdiyZvsEMN9OguKV4\\nDsLgvu1lTNoY9DD7gsAojC4QeqYbpHADxt0AeYIKeTkXYNtbNxOapTewO2Dwqze5\\n9Rd2Xl0ZTWJmCGlB539eIoe7cLUDQX1ae0l88TZBRzGpiGVQE8ejj6sOSW2v5lt8\\n2Fx+7UiYKd5+gV1PSNx8P15Rj3kgEkLnlybUsDTE42scdVhN9ivjgqePUlFtq/4e\\nA80NpZcjS3PsAo6dns6qhMBbvtMaJqdtaijMkJd/5HszTLNm0InSFnsJPRivJxZr\\n4LwjKbbgPFn6oi3fFDUc4BNKwy34VVsupB7eMbrlKQKBgQDp/T7OYICT1be6ujsC\\nQdXO0jY6w3fzBJnC8bxN/VnzmikGh9PTLkw/lrtpbYYl5MgkmXUyPkdBVdaY97Fz\\njvFhTrNsc5puTt5lH6tNifEZ2pA5U5QO3bMyMN0myWl3L54JdXmLYuTRGA0NnvBE\\nVHK5vELfBzDNJ9ScbST73Lw+qQKBgQC8BEk1Y0Tp3pD15UgNXYWd0IQTyqzmljAQ\\nIIF438DpCtX+WYeFlvE4Fn5ijTfsRUsMgYQtZlnw90EkazJh9v3K+BaGNW1L3nZW\\nIQveXFJXKxfPCGlHWniDMjW5bdfdnGDBpVm0Fpeqcm6enoXzYbGQcp9hK5Fem5su\\n9t0BXjXUzQKBgFhhUUG+bZJpXRZolTVLDKkr+VPE1R+zkyhxCkEi+sDqb6iJ0Vao\\n3CAAnRU7Szow6e/5Dq1FnMBu3bm1hQ8y5LVudpL2L1SO8a2cgqWs/qZXSbZ9fSUI\\nVFEW59Fori9Yiwbjml8toWPhA70rVXFZvGOvWkrHeoVjEAltqFSBkZDRAoGAW+jo\\ndL27QWw4hsv3hfkSyUvWVOp9zRbcFfYd9J3E6ucOJxFTC333G0j7rWeFT+2ru0hQ\\n+fSPwRjNcmUosvUPqbnPIPpbHHx6cq4i5CdTZSM+t0lQVb4nLVNNKgFFRiMctW0E\\nReHJcFwSMV4i8w/twkQWH2Ux4gLFQJcTAIkyXX0CgYARGJcyiOR3IIh86CAyVj6i\\nfH9gPL03s51BsGY9vsyEoqYRW5JUXu1rLow7CFTeOTrck6Ghx5D62bu+/xyKQTGW\\nWaNvRnGfthDiR65yLyPf/VU7H/9Y5u/bkD3C1uIt6F9cyoAPFkAx76NZ/igFH2tA\\nqtSGHf9NUygLLeQxVhFlhw==\\n-----END PRIVATE KEY-----\\n\",\n  \"client_email\": \"lora-bot@lora-discord-bot.iam.gserviceaccount.com\",\n  \"client_id\": \"106788860682830936216\",\n  \"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\n  \"token_uri\": \"https://oauth2.googleapis.com/token\",\n  \"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\n  \"client_x509_cert_url\": \"project/https://www.googleapis.com/robot/v1/metadata/x509/lora-bot%40lora-discord-bot.iam.gserviceaccount.com\",\n  \"universe_domain\": \"googleapis.com\"\n}\n")
     # # print(json.loads('{"type": "service_account", "project_id": "lora-discord-bot"}'))
     # # open google sheet
     # gs = gc.open_by_key(SHEET_KEY)
