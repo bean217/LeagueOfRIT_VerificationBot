@@ -9,5 +9,5 @@ RUN python3 -m pip install -r /tmp/requirements.txt
 WORKDIR /app
 COPY . .
 
-RUN python project/main.py
+RUN python project/main.py --deploy
 
