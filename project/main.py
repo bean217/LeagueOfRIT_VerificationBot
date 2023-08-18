@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 
 import bot
@@ -6,6 +7,8 @@ import bot
 def main():
     # load environment variables
     load_dotenv()
+    # set deployment environment variable
+    os.environ['DEPLOY'] = "True" if '-d' in sys.argv or '--deploy' in sys.argv else ""
     # fetch the Discord bot token
     TOKEN = os.getenv('BOT_TOKEN')
     # URL Bot's invite URL

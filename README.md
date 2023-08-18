@@ -33,11 +33,20 @@ SMTP_ADDR="DOMAIN OF SMTP SERVER"   // This is "smtp.google.com" by default
 # Google Services Credentials
 SHEET_KEY="KEY TO GOOGLE SHEET"
 SHEET_NAME="NAME OF SHEET TAB"
-GS_CREDS_FNAME="NAME OF GOOGLE SERVICES CREDENTIALS FILE IN /projects DIRECTORY"
+GS_KEY="NAME OF GOOGLE SERVICES CREDENTIALS FILE IN /projects DIRECTORY"
 ```
 
 4. Add the bot to your server with a link from the maintainer and run `project/main.py` to start the bot
 
+### Running in a Deployment
+
+Differences from local deployment:
+
+1. Since you should not be exposing your Google Services key (GS_KEY), instead create a secret from your Google Services Credentials JSON file. Instead of trying to read from a file, the bot will consider GS_KEY as a JSON string, as long as step 2 is followed.
+
+2. When running your deployment, run the bot with `python project/main.py -d` or `python project/main.py --deploy`. This will set an internal `DEPLOY` environment variable, causing GS_KEY to be read as a JSON string instead of a file.
+
+**NOTE:** It is HIGHLY recommended that you create secrets for any sensitive information. This is especially important for data like the Google Services key (GS_KEY), email username (EMAIL_USER), email password (EMAIL_PASS), and Google sheet key (SHEET_KEY).
 
 ## Usage Instructions
 

@@ -72,7 +72,7 @@ async def send_verif_email(user: User, email: str):
 #     Record User Data     #
 ############################
 
-
+import json
 from datetime import datetime
 import pandas as pd
 import gspread
@@ -81,14 +81,23 @@ from google.oauth2.service_account import Credentials
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
-GS_CREDS_FNAME = os.getenv('GS_CREDS_FNAME')
+GS_KEY = os.getenv('GS_KEY')
 SHEET_KEY = os.getenv('SHEET_KEY')
 SHEET_NAME = os.getenv('SHEET_NAME')
+DEPLOY = bool(os.getenv('DEPLOY'))
 
 scopes = ['https://www.googleapis.com/auth/spreadsheets',
           'https://www.googleapis.com/auth/drive']
 
-credentials = Credentials.from_service_account_file(GS_CREDS_FNAME, scopes=scopes)
+credentials = None
+# If running in a deployment:
+if DEPLOY:
+    # treat GS_KEY as a json dict
+    credentials = Credentials.from_service_account_info(json.loads(GS_KEY), scopes=scopes)
+# otherwise, if running in a local environment:
+else:
+    # treat GS_KEY as a file
+    credentials = Credentials.from_service_account_file(GS_KEY, scopes=scopes)
 
 gc = gspread.authorize(credentials)
 
@@ -362,51 +371,26 @@ async def handle_unverified_dm(user: User, unverified_users: list, message: Unio
         await handle_code_timeout(user)
 
 
-
-
-
-
-
-
-
-import pandas as pd
-import gspread
-from gspread_dataframe import set_with_dataframe
-from google.oauth2.service_account import Credentials
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
-
-scopes = ['https://www.googleapis.com/auth/spreadsheets',
-          'https://www.googleapis.com/auth/drive']
-
-credentials = Credentials.from_service_account_file('lora-discord-bot-60391a83090d.json', scopes=scopes)
-
-gc = gspread.authorize(credentials)
-
-gauth = GoogleAuth()
-drive = GoogleDrive(gauth)
-
-
-from datetime import datetime
-
 def main():
-    # open google sheet
-    gs = gc.open_by_key('1ua4sVy9hHj3MPXAqh5TJbx3xIaZocojBpv27W0gZVn4')
-    # select work sheet
-    ws = gs.worksheet('Sheet1')
-    #email.utils.formatdate()
-    print(ws)
-    df = pd.DataFrame({
-        'a': str(datetime.now().strftime("%m/%d/%Y, %H:%M:%S")),
-        'b': ['email'],
-        'c': ['name'],
-        'd': ['year'],
-        'e': ['discord_id'],
-        'f': ['discovery'],
-        'g': ['GREEN']
-    })
-    df_values = df.values.tolist()
-    gs.values_append('Sheet1', {'valueInputOption': 'USER_ENTERED'}, {'values': df_values})
+    # # print(json.loads('{"type": "service_account", "project_id": "lora-discord-bot"}'))
+    # # open google sheet
+    # gs = gc.open_by_key(SHEET_KEY)
+    # # select work sheet
+    # ws = gs.worksheet(SHEET_NAME)
+    # #email.utils.formatdate()
+    # print(ws)
+    # df = pd.DataFrame({
+    #     'a': str(datetime.now().strftime("%m/%d/%Y, %H:%M:%S")),
+    #     'b': ['email'],
+    #     'c': ['name'],
+    #     'd': ['year'],
+    #     'e': ['discord_id'],
+    #     'f': ['discovery'],
+    #     'g': ['GREEN']
+    # })
+    # df_values = df.values.tolist()
+    # gs.values_append(SHEET_NAME, {'valueInputOption': 'USER_ENTERED'}, {'values': df_values})
+    pass
 
 if __name__ == "__main__":
     main()
