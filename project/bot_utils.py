@@ -97,7 +97,10 @@ if IS_LOCAL:
 # otherwise, if running in a deployment:
 else:
     # treat GS_KEY as a json dict
-    credentials = Credentials.from_service_account_info(json.loads(GS_KEY), scopes=scopes)
+    with open('./gs_key.json', 'w') as f:
+        f.write(GS_KEY)
+    credentials = Credentials.from_service_account_file("./gs_key.json", scopes=scopes)
+    # credentials = Credentials.from_service_account_info(json.loads(GS_KEY), scopes=scopes)
 
 gc = gspread.authorize(credentials)
 
