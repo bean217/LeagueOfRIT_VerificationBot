@@ -8,7 +8,7 @@ def main():
     # load environment variables
     load_dotenv()
     # set deployment environment variable
-    os.environ['DEPLOY'] = "True" if '-d' in sys.argv or '--deploy' in sys.argv else ""
+    os.environ['IS_LOCAL'] = "True" if '-l' in sys.argv or '--local' in sys.argv else ""
     # fetch the Discord bot token
     TOKEN = os.getenv('BOT_TOKEN')
     # URL Bot's invite URL

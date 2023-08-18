@@ -84,20 +84,20 @@ from pydrive.drive import GoogleDrive
 GS_KEY = os.getenv('GS_KEY')
 SHEET_KEY = os.getenv('SHEET_KEY')
 SHEET_NAME = os.getenv('SHEET_NAME')
-DEPLOY = bool(os.getenv('DEPLOY'))
+IS_LOCAL = bool(os.getenv('IS_LOCAL'))
 
 scopes = ['https://www.googleapis.com/auth/spreadsheets',
           'https://www.googleapis.com/auth/drive']
 
 credentials = None
-# If running in a deployment:
-if DEPLOY:
-    # treat GS_KEY as a json dict
-    credentials = Credentials.from_service_account_info(json.loads(GS_KEY), scopes=scopes)
-# otherwise, if running in a local environment:
-else:
+# If running in a local environment:
+if IS_LOCAL:
     # treat GS_KEY as a file
     credentials = Credentials.from_service_account_file(GS_KEY, scopes=scopes)
+# otherwise, if running in a deployment:
+else:
+    # treat GS_KEY as a json dict
+    credentials = Credentials.from_service_account_info(json.loads(GS_KEY), scopes=scopes)
 
 gc = gspread.authorize(credentials)
 
