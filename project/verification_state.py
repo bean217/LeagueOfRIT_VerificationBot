@@ -92,6 +92,8 @@ msgs = [
 
     "The code you entered had timed out. Please use the `!resend` command to have a new code sent.",
 
+    "Incorrect verification codes have been entered past the retry limit. Please use the `!resend` command to have a new code sent.",
+
     "Your email have been verified! You have been assigned the @Tiger role in the league of RIT Discord.\n\n" + \
     "Now that verification is complete, LoRA Bot commands have bene disabled and " + \
     "I will no longer respond to further messages.\n\n" + \
@@ -113,7 +115,8 @@ class Verification_State(Enum):
     INVALID_EMAIL_RESP = 11
     INCORRECT_CODE = 12
     CODE_TIMEOUT = 13
-    DONE = 14
+    NO_RETRIES = 14
+    DONE = 15
 
     @property
     def msg(self):
@@ -137,6 +140,7 @@ class User():
         self.__state_index = Verification_State.NEW.value
         self.responses = dict()
         self.verif_token = None
+        self.remaining_tries = 3
 
     @property
     def state(self):
@@ -165,6 +169,7 @@ class User():
         self.__state_index = Verification_State.NEW.value
         self.responses = dict()
         self.verif_token = None
+        self.remaining_tries = 3
     
     async def grant_tigers_role(self):
         role = [r for r in self.user.guild.roles if str(r.name) == TIGER_ROLE_NAME][0]

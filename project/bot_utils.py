@@ -213,7 +213,7 @@ async def handle_student_q(user: User, message: str):
 
 
 async def handle_name_q(user: User, message: str):
-    """Handles messages from user in the "NAME_Q"
+    """Handles messages from user in the "NAME_Q" state
         @param user: User object associated with user's verification state
         @param message: string of the message sent by the user
     """
@@ -226,7 +226,7 @@ async def handle_name_q(user: User, message: str):
 
 
 async def handle_year_q(user: User, message: str):
-    """Handles messages from user in the "YEAR_Q"
+    """Handles messages from user in the "YEAR_Q" state
         @param user: User object associated with user's verification state
         @param message: string of the message sent by the user
     """
@@ -242,7 +242,7 @@ async def handle_year_q(user: User, message: str):
 
 
 async def handle_discovery_q(user: User, message: str):
-    """Handles messages from user in the "DISCOVERY_Q"
+    """Handles messages from user in the "DISCOVERY_Q" state
         @param user: User object associated with user's verification state
         @param message: string of the message sent by the user
     """
@@ -266,7 +266,7 @@ async def handle_discovery_q(user: User, message: str):
 
 
 async def handle_poster_q(user: User, message: str):
-    """Handles messages from user in the "POSTER_Q"
+    """Handles messages from user in the "POSTER_Q" state
         @param user: User object associated with user's verification state
         @param message: string of the message sent by the user
     """
@@ -276,7 +276,7 @@ async def handle_poster_q(user: User, message: str):
 
 
 async def handle_email_q(user: User, message: str):
-    """Handles messages from user in the "EMAIL_Q"
+    """Handles messages from user in the "EMAIL_Q" state
         @param user: User object associated with user's verification state
         @param message: string of the message sent by the user
     """
@@ -296,11 +296,11 @@ async def handle_email_q(user: User, message: str):
 
 
 async def handle_verif_sent(user: User, message: str, unverified_users: list):
-    """Handles messages from user in the "VERIF_SENT"
+    """Handles messages from user in the "VERIF_SENT" state
         @param user: User object associated with user's verification state
         @param message: string of the message sent by the user
     """
-    if message == user.verif_token.code:
+    if message == user.verif_token.code and user.remaining_tries > 0:
         # make sure code isn't timed out
         remaining_time = int(vs.TIMEOUT_MINS - (email.utils.parsedate_to_datetime(email.utils.formatdate()) - email.utils.parsedate_to_datetime(user.verif_token.datetime)).total_seconds() / 60)
         if remaining_time < 0:
@@ -321,11 +321,15 @@ async def handle_verif_sent(user: User, message: str, unverified_users: list):
             handle_record_data(verified_user)
     else:
         # verification failed
-        await user.send(Verification_State.INCORRECT_CODE.msg)
+        if user.remaining_tries > 0:
+            user.remaining_tries -= 1
+            await user.send(Verification_State.INCORRECT_CODE.msg)
+        else:
+            await user.send(Verification_State.NO_RETRIES.msg)
 
 
 async def handle_code_timeout(user: User):
-    """Handles messages from user in the "CODE_TIMEOUT"
+    """Handles messages from user in the "CODE_TIMEOUT" state
         @param user: User object associated with user's verification state
         @param message: string of the message sent by the user
     """
