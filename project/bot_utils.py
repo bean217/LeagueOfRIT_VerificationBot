@@ -256,6 +256,8 @@ async def handle_discovery_q(user: User, message: str):
         else:
             user.set_state(Verification_State.EMAIL_Q)
     else:
+        # record user's 'other' response
+        user.responses.update({user.state: message})
         # user answered with "other"
         user.set_state(Verification_State.EMAIL_Q)
 

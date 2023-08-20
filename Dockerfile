@@ -9,5 +9,7 @@ RUN python3 -m pip install -r /tmp/requirements.txt
 WORKDIR /app
 COPY . .
 
+ENV PYTHONUNBUFFERED=1
+
 RUN python project/main.py
 
