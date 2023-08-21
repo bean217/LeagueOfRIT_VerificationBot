@@ -19,8 +19,6 @@ def run_discord_bot(token, guild_id):
     @client.event
     async def on_ready():
         """Fetches the server/guild object
-            TODO: This event is not really used at the moment, but
-            it could be used to fetch all users who are not currently verified
         """
         # get the server being considered
         guild = bot_utils.get_guild(client, guild_id)
@@ -44,6 +42,10 @@ def run_discord_bot(token, guild_id):
         """When a member joins, start the verification process for them
             @param member: discord.Member object of user that joined the server
         """
+        # ignore users from other servers
+        if str(member.guild.id) != str(guild_id):
+            return
+
         print(member, "joined")
 
         # send new member a verification message
@@ -57,6 +59,10 @@ def run_discord_bot(token, guild_id):
         """When an unverified user leaves the server, stop tracking their verification state
             @param member: discord.Member object of user that left the server
         """
+        # ignore users from other servers
+        if str(member.guild.id) != str(guild_id):
+            return
+
         print(member, "left")
         
         # stop tracking user's verification state
@@ -70,7 +76,10 @@ def run_discord_bot(token, guild_id):
         """Only responds to private messages for the user verification process
             @param message: discord.Message object of the message that was sent
         """
-        
+        # ignore users from other servers
+        if str(message.guild.id) != str(guild_id):
+            return
+
         # only consider non-bot messages
         if message.author == client.user or str(message.channel.type) != "private":
             return
