@@ -55,8 +55,8 @@ msgs = [
 
     "Unfortunately since you are not an RIT student, you will need to contact " + \
     "@willie_ or @therealalpacadg in order to join the server as a Non-RIT member.\n\n" + \
-    "If you believe that you have made a mistake, please use the `!restart` command " + \
-    "to start this verification process over.",
+    "If you believe you have made a mistake, please use the `!restart` command " + \
+    "to redo the verification process.",
 
     "What is your name (first and last)?\n" + \
     "If you make a mistake, please use the `!restart` command.",
