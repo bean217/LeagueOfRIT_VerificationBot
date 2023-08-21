@@ -76,10 +76,6 @@ def run_discord_bot(token, guild_id):
         """Only responds to private messages for the user verification process
             @param message: discord.Message object of the message that was sent
         """
-        # ignore users from other servers
-        if str(message.guild.id) != str(guild_id):
-            return
-
         # only consider non-bot messages
         if message.author == client.user or str(message.channel.type) != "private":
             return
