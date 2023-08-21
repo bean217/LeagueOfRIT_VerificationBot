@@ -153,7 +153,7 @@ def handle_record_data(user: User):
     ws = gs.worksheet(SHEET_NAME)
     print(ws)
     df = pd.DataFrame({
-        'a': str(datetime.now().strftime("%m/%d/%Y, %H:%M:%S")),
+        'a': str(user.join_datetime.strftime("%m/%d/%Y, %H:%M:%S")),
         'b': [email],
         'c': [name],
         'd': [year],
@@ -230,11 +230,8 @@ async def handle_year_q(user: User, message: str):
         @param user: User object associated with user's verification state
         @param message: string of the message sent by the user
     """
-    if bool(re.match(r"[1-5]$", message)):
-        user.responses.update({user.state: vs.year_q_answers[int(message)-1]})
-    else:
-        # user answered with "other"
-        user.responses.update({user.state: message})
+    # special case for handling answering this question
+    user.get_year_q_answer(message)
     # set user to discovery question
     user.set_state(Verification_State.DISCOVERY_Q)
     # send user the discovery question
@@ -246,7 +243,7 @@ async def handle_discovery_q(user: User, message: str):
         @param user: User object associated with user's verification state
         @param message: string of the message sent by the user
     """
-    if bool(re.match(r"[1-5]$", message)):
+    if bool(re.match(r"^[1-5]$", message)):
         # record user's multiple choice response
         user.responses.update({user.state: vs.discovery_q_answers[int(message)-1]})
         # if they chose poster, handle setting the user's next state accordingly

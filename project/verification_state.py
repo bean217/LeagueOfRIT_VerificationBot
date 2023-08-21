@@ -2,10 +2,14 @@ import random
 import math
 import email.utils
 import discord
+import re
 from enum import Enum
+from datetime import datetime
+
+import date_util
 
 TIMEOUT_MINS: int = 15
-TIGER_ROLE_NAME = "Tigers"
+GET_ROLE_NAME = "Get Roles"
 
 rit_verified_domains = [
     "rit.edu",
@@ -15,7 +19,7 @@ rit_verified_domains = [
 
 
 year_q_answers = [
-    "Incoming First Year",
+    "First Year",
     "Second Year",
     "Third Year",
     "Fourth Year",
@@ -62,7 +66,7 @@ msgs = [
     "If you make a mistake, please use the `!restart` command.",
 
     "What year are you at RIT? Enter the number corresponding to your year:\n\t" + \
-    "[1] Incoming First Year\n\t" + \
+    "[1] First Year\n\t" + \
     "[2] Second Year\n\t" + \
     "[3] Third Year\n\t" + \
     "[4] Fourth Year\n\t" + \
@@ -141,6 +145,8 @@ class User():
         self.responses = dict()
         self.verif_token = None
         self.remaining_tries = 3
+        self.join_datetime = datetime.now()
+        self.__roles_to_grant = [GET_ROLE_NAME]
 
     @property
     def state(self):
@@ -172,18 +178,34 @@ class User():
         self.remaining_tries = 3
     
     async def grant_tigers_role(self):
-        role = [r for r in self.user.guild.roles if str(r.name) == TIGER_ROLE_NAME][0]
-        await self.user.add_roles(role)
+        roles = [r for r in self.user.guild.roles if str(r.name) in self.__roles_to_grant]
+        for r in roles:
+            await self.user.add_roles(r)
 
     async def send(self, msg):
         await self.user.send(msg)
-
+    
+    def get_year_q_answer(self, user_input):
+        if re.match(r"^[1-5]$", user_input):
+            # if the user selected 1, mark that they should get the incoming user badge
+            if user_input == '1':
+                # check if they joined after the start of classes
+                classes_startdate: datetime = date_util.get_classes_startdate()
+                if (classes_startdate-self.join_datetime).total_seconds > 0:
+                    # prepare user to be granted incoming role
+                    self.__roles_to_grant.append(f'RIT {classes_startdate.year}')
+                    # record user's response as "Incoming First Year" instead of just "First Year"
+                    self.responses.update({self.state: "Incoming " + year_q_answers[0]})
+            # otherwise, treat response as normal
+            else:
+                self.responses.update({self.state: year_q_answers[int(user_input)-1]})
+        # otherwise use "other" response
+        else:
+            self.responses.update({self.state: user_input})
 
 
 def main():
-    for v in Verification_State:
-        print(v)
-        print(f'\t{v.msg}')
+    pass
 
 if __name__ == "__main__":
     main()
