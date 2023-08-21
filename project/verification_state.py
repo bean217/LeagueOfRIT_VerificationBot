@@ -191,7 +191,7 @@ class User():
             if user_input == '1':
                 # check if they joined after the start of classes
                 classes_startdate: datetime = date_util.get_classes_startdate()
-                if (classes_startdate-self.join_datetime).total_seconds > 0:
+                if (classes_startdate-self.join_datetime).total_seconds() > 0:
                     # prepare user to be granted incoming role
                     self.__roles_to_grant.append(f'RIT {classes_startdate.year}')
                     # record user's response as "Incoming First Year" instead of just "First Year"
