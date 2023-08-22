@@ -186,6 +186,7 @@ async def start_verification(member: discord.Member, unverified_users: dict):
     """Starts the verification process for a particular unverified user
         @param user: User object associated with user's verification state
     """
+    print(f"Started verification for user: {member.name} ({member.id})")
     unverified_users.update({member.id: User(member)})
     await handle_new(unverified_users.get(member.id))
 
