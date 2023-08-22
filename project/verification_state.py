@@ -176,6 +176,7 @@ class User():
         self.responses = dict()
         self.verif_token = None
         self.remaining_tries = 3
+        self.__roles_to_grant = [GET_ROLE_NAME]
     
     async def grant_tigers_role(self):
         roles = [r for r in self.user.guild.roles if str(r.name) in self.__roles_to_grant]
