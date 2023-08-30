@@ -197,6 +197,9 @@ class User():
                     self.__roles_to_grant.append(f'RIT {classes_startdate.year}')
                     # record user's response as "Incoming First Year" instead of just "First Year"
                     self.responses.update({self.state: "Incoming " + year_q_answers[0]})
+                else:
+                    # record user's response as "First Year"
+                    self.responses.update({self.state: year_q_answers[0]})
             # otherwise, treat response as normal
             else:
                 self.responses.update({self.state: year_q_answers[int(user_input)-1]})
