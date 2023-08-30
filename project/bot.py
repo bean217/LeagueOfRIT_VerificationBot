@@ -26,6 +26,9 @@ def run_discord_bot(token, guild_id):
         # get all members who are not yet verified
         unverified = [m for m in guild.members if len(m.roles) < 2]
 
+        # show "Hosted by CSH" status
+        client.change_presence(activity=discord.CustomActivity(name='Hosted by CSH'))
+
         # for each unverified member, start their verification process
         for member in unverified:
             try:
