@@ -11,5 +11,5 @@ COPY . .
 
 ENV PYTHONUNBUFFERED=1
 
-RUN python project/main.py
+CMD ["python", "project/main.py"]
 
