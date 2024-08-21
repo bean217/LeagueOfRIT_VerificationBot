@@ -58,7 +58,7 @@ msgs = [
     "Please enter a valid response ('Yes' or 'No').",
 
     "Unfortunately since you are not an RIT student, you will need to contact " + \
-    "@cadillacliam in order to join the server as a Non-RIT member.\n\n" + \
+    "@jadeijara or @cadillacliam in order to join the server as a Non-RIT member.\n\n" + \
     "If you believe you have made a mistake, please use the `!restart` command " + \
     "to redo the verification process.",
 
@@ -86,7 +86,7 @@ msgs = [
     "For verification purposes, what is your RIT email?",
 
     "A verification code has been sent to your email. Please enter the code you received. " + \
-    "If for some reason you never received a code, please contact @cadillacliam.",
+    "If for some reason you never received a code, please contact @jadeijara or @cadillacliam.",
 
     "Please enter only a single valid RIT email as your response.",
 
