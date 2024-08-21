@@ -36,18 +36,18 @@ discovery_q_answers = [
 ]
 
 
-VERIF_EMAIL_CONTENT = lambda recipient, token: """Subject: League of RIT Discord Email Verification
+VERIF_EMAIL_CONTENT = lambda recipient, token: """Subject: Riot Gaming Club Discord Email Verification
 From: RIT Email Verification Bot <benpiro1118@gmail.com>
 To: """+recipient+"""
 Date: """+token.datetime+"""
 
-Please reply to the LoRA Discord Bot with the following:\t"""+token.code
+Please reply to the RGC Discord Bot with the following:\t"""+token.code
 
 
 msgs = [
-    "Hello! Welcome to the League of RIT!\n\n" + \
-    "I am the League of RIT Admin Verification Bot (LoRA Bot for short).\n\n" + \
-    "In order to gain access to the League of RIT's official Discord, " + \
+    "Hello! Welcome to the Riot Gaming Club!\n\n" + \
+    "I am the RGC Admin Verification Bot (RGC Bot for short).\n\n" + \
+    "In order to gain access to the Riot Gaming Club's official Discord, " + \
     "we need to verify a few things first.\n\n" + \
     "Once you have completed verification, you will be free to select your own roles.\n\n" + \
     "If at any point during the verification process you would like to restart, " + \
@@ -58,7 +58,7 @@ msgs = [
     "Please enter a valid response ('Yes' or 'No').",
 
     "Unfortunately since you are not an RIT student, you will need to contact " + \
-    "@willie_ or @therealalpacadg in order to join the server as a Non-RIT member.\n\n" + \
+    "@cadillacliam in order to join the server as a Non-RIT member.\n\n" + \
     "If you believe you have made a mistake, please use the `!restart` command " + \
     "to redo the verification process.",
 
@@ -86,7 +86,7 @@ msgs = [
     "For verification purposes, what is your RIT email?",
 
     "A verification code has been sent to your email. Please enter the code you received. " + \
-    "If for some reason you never received a code, please contact @willie_ or @therealalpacadg.",
+    "If for some reason you never received a code, please contact @cadillacliam.",
 
     "Please enter only a single valid RIT email as your response.",
 
@@ -98,10 +98,10 @@ msgs = [
 
     "Incorrect verification codes have been entered past the retry limit. Please use the `!resend` command to have a new code sent.",
 
-    "Your email have been verified! You have been assigned the @Tiger role in the league of RIT Discord.\n\n" + \
-    "Now that verification is complete, LoRA Bot commands have bene disabled and " + \
+    "Your email have been verified! You have been assigned the @Tiger role in the Riot Gaming Club Discord.\n\n" + \
+    "Now that verification is complete, RGC Bot commands have bene disabled and " + \
     "I will no longer respond to further messages.\n\n" + \
-    "Feel free to close this DM and enjoy the League of RIT!"
+    "Feel free to close this DM and enjoy the Riot Gaming Club!"
 ]
 
 class Verification_State(Enum):
